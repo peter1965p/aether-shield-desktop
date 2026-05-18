@@ -1,4 +1,4 @@
-![AETHER SHIELD Interface](AethherShieldSystem.png)
+![AETHER SHIELD Interface](aethershield.png)
 # AETHER SHIELD // DEPLOYMENT CORE v1.0
 **AETHER SHIELD** ist ein hochperformantes, automatisiertes Dashboard zur Visualisierung und Steuerung von Sicherheitsinterventionen in Echtzeit innerhalb des **AETHER OS** Ökosystems. Die Software kombiniert die unerbittliche Geschwindigkeit und Speichersicherheit von **Rust** mit der modernen, deklarativen UI-Performance von **Slint**.
 
