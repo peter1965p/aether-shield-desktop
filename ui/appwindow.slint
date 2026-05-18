@@ -1,5 +1,6 @@
-import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { Button, VerticalBox, LineEdit } from "std-widgets.slint";
 
+// Struktur für die Log-Einträge
 export struct LogEntry {
     timestamp: string,
     actor: string,
@@ -9,313 +10,224 @@ export struct LogEntry {
     details: string,
 }
 
-global Theme {
-    out property <color> bg-main: #020408;
-    out property <color> bg-card: #070b12;
-    out property <color> bg-terminal: #04070d;
-    out property <color> border-cyber: #111a2e;
-
-    out property <color> aether-orange: #ff6a00;
-    out property <color> aether-blue: #0066ff;
-
-    out property <color> text-muted: #6272a4;
-    out property <color> text-bright: #f8f8f2;
-
-    out property <color> mythos-crit: #ff0055;
-    out property <color> level-warning: #ffb86c;
-    out property <color> level-ok: #50fa7b;
-}
-
-component StatCard inherits Rectangle {
-    in property <string> title;
-    in property <string> value;
-    in property <color> accent_color;
-
-    background: Theme.bg-card;
-    border-width: 1px;
-    border-color: Theme.border-cyber;
-    border-radius: 4px;
-
-    Rectangle {
-        background: root.accent_color;
-        width: 4px;
-        x: 0;
-        height: parent.height;
-    }
-
-    VerticalBox {
-        padding-left: 20px;
-        padding-top: 14px;
-        padding-bottom: 14px;
-        spacing: 4px;
-
-        Text {
-            text: root.title;
-            font-size: 8pt;
-            color: Theme.text-muted;
-            font-family: "Courier New";
-            font-weight: 700;
-        }
-        Text {
-            text: root.value;
-            font-size: 19pt;
-            font-weight: 900;
-            color: Theme.text-bright;
-            font-family: "Courier New";
-        }
-    }
-}
-
-component CyberButton inherits Rectangle {
-    in property <string> text;
-    in property <color> main-color: Theme.aether-orange;
-    in property <color> hover-color: #ff7a1a;
-    in property <color> press-color: #cc5500;
-    callback clicked();
-
-    background: touch.pressed ? root.press-color : (touch.has-hover ? root.hover-color : root.main-color);
-    border-width: 1px;
-    border-color: touch.has-hover ? Theme.text-bright : #111a2e;
-    border-radius: 2px;
-    height: 40px;
-
-    animate background { duration: 150ms; }
-
-    touch := TouchArea {
-        clicked => { root.clicked(); }
-    }
-
-    HorizontalBox {
-        alignment: center;
-        Text {
-            text: root.text;
-            font-family: "Courier New";
-            font-size: 10pt;
-            font-weight: 900;
-            color: touch.has-hover ? Theme.bg-main : Theme.text-bright;
-        }
-    }
-}
-
 export component AppWindow inherits Window {
-    in-out property <string> status_text: "● MATRIX CORES RUNNING";
-    in-out property <string> total_blocks: "1412";
-    in-out property <string> active_tarpits: "14";
-    in-out property <string> latency: "0.12ms";
+    title: "AETHER SHIELD IV DEPLOYMENT CORE v1.0";
+    width: 1200px;
+    height: 700px;
+    background: #020406;
+
+    // Properties für die Kommunikation mit Rust
     in-out property <[LogEntry]> logs: [];
+    in-out property <string> total_blocks: "1416";
+    in-out property <string> total_isolation: "14";
+    in-out property <string> system_integrity: "100%";
+    in-out property <string> latency: "0.05ms";
 
-    in-out property <bool> has_selected_log: false;
-    in-out property <string> sel_time: "";
-    in-out property <string> sel_actor: "";
-    in-out property <string> sel_pattern: "";
-    in-out property <string> sel_level: "";
-    in-out property <string> sel_details: "";
+    // Splashscreen Properties
+    in-out property <bool> show_splash: true;
+    in-out property <string> splash_status: "INITIALISING NEURAL LINK...";
+    in-out property <float> splash_progress: 0.0;
 
-    callback trigger_simulation();
+    // Callbacks für Aktionen
     callback execute_immediate_action(string, string);
+    callback trigger_simulation();
 
-    title: "AETHER SHIELD // DEPLOYMENT CORE v1.0";
-    min-width: 1200px;
-    min-height: 720px;
-    background: Theme.bg-main;
+    // =========================================================================
+    // MAIN CONTENT (DASHBOARD)
+    // =========================================================================
+    if (!show_splash) : VerticalBox {
+        padding: 20px;
+        spacing: 15px;
 
-    VerticalBox {
-        padding: 25px;
-        spacing: 20px;
-
-        // Header Section
-        HorizontalBox {
-            padding: 0;
-            VerticalBox {
-                padding: 0;
-                spacing: 4px;
-                HorizontalBox {
-                    alignment: start;
-                    spacing: 0;
-                    Text { text: "AETHER SHIELD "; font-family: "Courier New"; font-size: 22pt; font-weight: 900; color: #ff3b30; }
-                    Text { text: "SYSTEM"; font-family: "Courier New"; font-size: 22pt; font-weight: 900; color: Theme.text-bright; }
-                }
-                Text { text: "// AUTOMATED MALWARE MITIGATION ENGINE // INCIDENT MANAGEMENT DOSSIER"; font-family: "Courier New"; font-size: 8pt; color: Theme.text-muted; }
+        // TOP HEADER
+        HorizontalLayout {
+            Text {
+                text: "AETHER SHIELD SYSTEM";
+                font-size: 24px;
+                font-weight: 900;
+                color: #FF4500;
             }
-            Text { text: root.status_text; font-family: "Courier New"; font-size: 11pt; font-weight: 900; color: Theme.level-ok; horizontal-alignment: right; }
+            Rectangle { } // Spacer
+            Text {
+                text: "● MATRIX CORES RUNNING";
+                color: #00FF00;
+                font-size: 12px;
+                vertical-alignment: center;
+            }
         }
 
-        // KPI Metriken Cards
-        HorizontalBox {
-            spacing: 16px; padding: 0; height: 75px;
-            StatCard { title: "KI-FUZZING BLOCKS"; value: root.total_blocks; accent_color: #ff3b30; }
-            StatCard { title: "TARPIT ISOLATIONEN"; value: root.active_tarpits; accent_color: #a855f7; }
-            StatCard { title: "SYSTEM INTEGRITÄT"; value: "100%"; accent_color: Theme.level-ok; }
-            StatCard { title: "Ø ANALYSE-LATENZ"; value: root.latency; accent_color: Theme.aether-blue; }
-        }
+        // STATS COUNTER GRID
+        HorizontalLayout {
+            spacing: 15px;
+            height: 100px;
 
-        // Split Layout
-        HorizontalBox {
-            spacing: 20px;
-            padding: 0;
-
-            // Linke Seite: Log-Terminal Tabelle
+            // Stat Box 1
             Rectangle {
-                background: Theme.bg-terminal;
+                background: #080c10;
                 border-width: 1px;
-                border-color: Theme.border-cyber;
-                border-radius: 4px;
-                horizontal-stretch: 5;
+                border-color: #141f2c;
+                VerticalBox {
+                    padding: 10px;
+                    Text { text: "KI-FUZZING BLOCKS"; font-size: 10px; color: #506070; }
+                    Text { text: root.total_blocks; font-size: 28px; font-weight: 700; color: #fff; }
+                }
+            }
+            // Stat Box 2
+            Rectangle {
+                background: #080c10;
+                border-width: 1px;
+                border-color: #141f2c;
+                VerticalBox {
+                    padding: 10px;
+                    Text { text: "TARPIN ISOLATIONEN"; font-size: 10px; color: #506070; }
+                    Text { text: root.total_isolation; font-size: 28px; font-weight: 700; color: #fff; }
+                }
+            }
+            // Stat Box 3
+            Rectangle {
+                background: #080c10;
+                border-width: 1px;
+                border-color: #141f2c;
+                VerticalBox {
+                    padding: 10px;
+                    Text { text: "SYSTEM INTEGRITÄT"; font-size: 10px; color: #506070; }
+                    Text { text: root.system_integrity; font-size: 28px; font-weight: 700; color: #00FF00; }
+                }
+            }
+            // Stat Box 4
+            Rectangle {
+                background: #080c10;
+                border-width: 1px;
+                border-color: #141f2c;
+                VerticalBox {
+                    padding: 10px;
+                    Text { text: "Ø ANALYSE-LATENZ"; font-size: 10px; color: #506070; }
+                    Text { text: root.latency; font-size: 28px; font-weight: 700; color: #00bfff; }
+                }
+            }
+        }
+
+        // MIDDLE WORKSPACE (LOGS & DOSSIER)
+        HorizontalLayout {
+            spacing: 15px;
+
+            // LOG-TABLE
+            Rectangle {
+                background: #04080c;
+                border-width: 1px;
+                border-color: #101a24;
+                width: 60%;
 
                 VerticalBox {
-                    padding: 20px;
-                    spacing: 12px;
-                    alignment: start;
+                    padding: 15px;
+                    Text { text: "> NET-TRAFFIC INTERCEPTOR / REALTIME DECISION LOG"; color: #00bfff; font-weight: 700; }
 
-                    Text { text: "> NET-TRAFFIC INTERCEPTOR / REALTIME DECISION LOG"; font-family: "Courier New"; color: Theme.aether-blue; font-size: 11pt; font-weight: 900; }
-
-                    // Tabellenkopf
-                    HorizontalBox {
-                        padding-left: 10px; padding-right: 10px;
-                        Text { text: "TIMESTAMP"; color: Theme.text-muted; font-family: "Courier New"; font-size: 9pt; font-weight: 700; width: 110px; }
-                        Text { text: "TARGET / CONTEXT"; color: Theme.text-muted; font-family: "Courier New"; font-size: 9pt; font-weight: 700; width: 200px; }
-                        Text { text: "ATTACK VECTOR / PATTERN"; color: Theme.text-muted; font-family: "Courier New"; font-size: 9pt; font-weight: 700; width: 240px; }
-                        Text { text: "AUTOMATED COUNTERMEASURE"; color: Theme.text-muted; font-family: "Courier New"; font-size: 9pt; font-weight: 700; width: 240px; }
-                        Text { text: "ALERT LEVEL"; color: Theme.text-muted; font-family: "Courier New"; font-size: 9pt; font-weight: 700; }
-                    }
-
-                    Rectangle { background: Theme.border-cyber; height: 1px; }
-
-                    // Dynamische Zeilen
                     VerticalBox {
-                        padding: 0;
-                        spacing: 6px;
-
-                        for entry in root.logs : Rectangle {
-                            height: 38px;
-                            background: row-touch.has-hover ? #0b1324 : transparent;
-                            border-radius: 4px;
-                            border-width: 1px;
-                            border-color: row-touch.has-hover ? Theme.border-cyber : transparent;
-
-                            row-touch := TouchArea {
-                                clicked => {
-                                    root.has_selected_log = true;
-                                    root.sel_time = entry.timestamp;
-                                    root.sel_actor = entry.actor;
-                                    root.sel_pattern = entry.pattern;
-                                    root.sel_level = entry.level;
-                                    root.sel_details = entry.details;
-                                }
-                            }
-
-                            HorizontalBox {
-                                padding-left: 10px; padding-right: 10px;
-                                alignment: space-between;
-
-                                Text { text: entry.timestamp; color: Theme.text-muted; font-family: "Courier New"; font-size: 9.5pt; width: 110px; }
-                                Text { text: entry.actor; color: Theme.text-bright; font-family: "Courier New"; font-size: 9.5pt; width: 200px; }
-                                Text { text: entry.pattern; color: #ff5555; font-family: "Courier New"; font-size: 9.5pt; width: 240px; }
-                                Text { text: entry.mitigation; color: Theme.aether-blue; font-family: "Courier New"; font-size: 9.5pt; width: 240px; }
-                                Text {
-                                    text: entry.level;
-                                    color: entry.level == "MYTHOS_CRIT" ? Theme.mythos-crit : (entry.level == "CRITICAL" ? #ff5555 : Theme.level-warning);
-                                    font-weight: 900; font-family: "Courier New"; font-size: 9.5pt;
-                                }
+                        spacing: 5px;
+                        for entry[index] in root.logs : Rectangle {
+                            height: 40px;
+                            background: entry.level == "MYTHOS_CRIT" ? #300000 : #081018;
+                            HorizontalLayout {
+                                padding: 5px;
+                                Text { text: entry.timestamp; color: #607080; width: 70px; vertical-alignment: center; }
+                                Text { text: entry.actor; color: #fff; width: 150px; font-weight: 700; vertical-alignment: center; }
+                                Text { text: entry.pattern; color: #ff8c00; width: 200px; vertical-alignment: center; }
+                                Text { text: entry.level; color: entry.level == "OK" ? #00FF00 : #FF0000; vertical-alignment: center; }
                             }
                         }
                     }
                 }
             }
 
-            // Rechte Seite: Cyber-Dossier
+            // DOSSIER
             Rectangle {
-                background: Theme.bg-card;
+                background: #04080c;
                 border-width: 1px;
-                border-color: Theme.border-cyber;
-                border-radius: 4px;
-                horizontal-stretch: 3;
-                min-width: 350px;
+                border-color: #101a24;
 
                 VerticalBox {
-                    padding: 20px;
-                    spacing: 15px;
-                    alignment: start;
-
-                    Text {
-                        text: "> SECURITY INCIDENT DOSSIER";
-                        font-family: "Courier New";
-                        color: root.has_selected_log ? Theme.aether-orange : Theme.text-muted;
-                        font-size: 11pt;
-                        font-weight: 900;
-                    }
-
-                    if !root.has_selected_log : VerticalBox {
-                        padding-top: 60px;
-                        alignment: center;
-                        Text {
-                            text: "[ KEIN ENTRAPMENT GEWÄHLT ]\n\nKlicke auf einen Warn- oder kritischen Eintrag im Log, um tiefergehende Analysen und Sofortmaßnahmen zu laden.";
-                            font-family: "Courier New";
-                            color: Theme.text-muted;
-                            font-size: 9.5pt;
-                            horizontal-alignment: center;
-                        }
-                    }
-
-                    if root.has_selected_log : VerticalBox {
-                        spacing: 14px;
-                        alignment: start;
-
-                        HorizontalBox {
-                            padding: 0;
-                            Text { text: "STUFE:  "; font-family: "Courier New"; font-size: 9.5pt; color: Theme.text-muted; width: 80px; }
-                            Text {
-                                text: root.sel_level; font-family: "Courier New"; font-size: 9.5pt; font-weight: 900;
-                                color: root.sel_level == "MYTHOS_CRIT" ? Theme.mythos-crit : (root.sel_level == "CRITICAL" ? #ff5555 : Theme.level-warning);
-                            }
-                        }
-
-                        HorizontalBox {
-                            padding: 0;
-                            Text { text: "ZEIT:   "; font-family: "Courier New"; font-size: 9.5pt; color: Theme.text-muted; width: 80px; }
-                            Text { text: root.sel_time; font-family: "Courier New"; font-size: 9.5pt; color: Theme.text-bright; }
-                        }
-
-                        Text { text: "AKTEUR:\n" + root.sel_actor; font-family: "Courier New"; font-size: 9.5pt; color: Theme.text-bright; font-weight: 700; wrap: word-wrap; }
-                        Text { text: "MUSTER:\n" + root.sel_pattern; font-family: "Courier New"; font-size: 9.5pt; color: #ff5555; wrap: word-wrap; }
-
-                        Rectangle { background: Theme.border-cyber; height: 1px; }
-
-                        Text { text: "FORENSISCHE ANALYSE:"; font-family: "Courier New"; font-size: 9pt; color: Theme.text-muted; font-weight: 700; }
-
-                        Text {
-                            text: root.sel_details;
-                            font-family: "Courier New";
-                            font-size: 9.5pt;
-                            color: Theme.text-bright;
-                            wrap: word-wrap;
-                        }
-
-                        Rectangle { background: Theme.border-cyber; height: 1px; }
-
-                        Text { text: "▲ AUTOMATISIERTE SOFORTMASSNAHMEN:"; font-family: "Courier New"; font-size: 9pt; font-weight: 900; color: Theme.level-warning; }
-
-                        CyberButton {
-                            text: "[ HARD KILL VECTOR / PROCESS ]";
-                            main-color: #3a0712; hover-color: #7f1d1d; press-color: Theme.mythos-crit;
-                            clicked => { root.execute_immediate_action("KILL", root.sel_actor); }
-                        }
-                        CyberButton {
-                            text: "[ PERMANENT BAN IP / CONTEXT ]";
-                            main-color: #0b132b; hover-color: #1c2541; press-color: Theme.aether-blue;
-                            clicked => { root.execute_immediate_action("BAN", root.sel_actor); }
-                        }
-                    }
+                    padding: 15px;
+                    Text { text: "> SECURITY INCIDENT DOSSIER"; color: #607080; font-weight: 700; }
+                    Rectangle { } // Spacer
+                    Text { text: "[ KEIN ENTRAPMENT GEWÄHLT ]"; color: #405060; horizontal-alignment: center; }
+                    Text { text: "Klicke auf einen Warn- oder kritischen Eintrag im Log, um tiefergehende Analysen zu laden."; color: #405060; font-size: 11px; horizontal-alignment: center; }
+                    Rectangle { } // Spacer
                 }
             }
         }
 
-        // Großer Simulations-Button ganz unten
-        CyberButton {
-            text: "[ INJECT KI-ATTACK SIMULATION (MYTHOS TYPE) ] ↗";
-            main-color: Theme.aether-orange; hover-color: #ff7a1a; press-color: #cc5500;
+        // BOTTOM ACTION BUTTON
+        Button {
+            text: "[ INJECT KI-ATTACK SIMULATION (MYTHOS TYPE) ]";
             height: 45px;
             clicked => { root.trigger_simulation(); }
+        }
+    }
+
+    // =========================================================================
+    // ANIMIERTER SPLASH SCREEN OVERLAY
+    // =========================================================================
+    if (show_splash) : Rectangle {
+        background: #010204;
+        width: 100%;
+        height: 100%;
+
+        VerticalBox {
+            alignment: center;
+            spacing: 30px;
+
+            // Das übergebene Bild zentriert anzeigen
+            Image {
+                source: @image-url("splash.png");
+                width: 800px;
+                height: 320px;
+                image-fit: contain;
+            }
+
+            // Status-Meldung
+            Text {
+                text: root.splash_status;
+                color: #ff8c00;
+                font-family: "Monospace";
+                font-size: 14px;
+                horizontal-alignment: center;
+                font-weight: 700;
+            }
+
+            // Der äußere Container der Progressbar zur horizontalen Zentrierung
+            HorizontalLayout {
+                alignment: center;
+
+                Rectangle {
+                    width: 400px;
+                    height: 6px;
+                    background: #101520;
+                    border-radius: 3px;
+
+                    // Der ladende Fortschrittsbalken mit absolut sicherer Vollfarbe
+                    Rectangle {
+                        x: 0;
+                        width: parent.width * root.splash_progress;
+                        height: 100%;
+                        background: #00bfff; // Sauberes Flat-Cyan ohne Parser-Struggle
+                        border-radius: 3px;
+
+                        // Slint-Animation für flüssiges Laden
+                        animate width {
+                            duration: 150ms;
+                            easing: ease-in-out;
+                        }
+                    }
+                }
+            }
+
+            Text {
+                text: "AETHER OS // KERNEL DESKTOP SHIELD SYSTEM v1.1.0";
+                color: #304050;
+                font-size: 10px;
+                horizontal-alignment: center;
+                font-family: "Monospace";
+            }
         }
     }
 }

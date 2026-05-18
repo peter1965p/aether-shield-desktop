@@ -9,6 +9,8 @@ chrono = "0.4"
 rand = "0.8"
 sysinfo = "0.30"
 local-ip-address = "0.5"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
 
 [build-dependencies]
 slint-build = "1.3"

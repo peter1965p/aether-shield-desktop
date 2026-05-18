@@ -120,6 +120,8 @@ dependencies = [
  "chrono",
  "local-ip-address",
  "rand 0.8.6",
+ "serde",
+ "serde_json",
  "slint",
  "slint-build",
  "sysinfo",

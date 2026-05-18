@@ -1,0 +1,11 @@
+[
+  {
+    "pattern_name": "Ransomware Core Activity",
+    "detection_keyword": "encryptor",
+    "category": "Ransomware",
+    "min_cpu_strikes": 1,
+    "countermeasure": "Immediate I/O Freeze & Kill",
+    "alert_level": "MYTHOS_CRIT",
+    "details_template": "WARNUNG: Krypto-Sperr-Aktivität detektiert!"
+  }
+]
